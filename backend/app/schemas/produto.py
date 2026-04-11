@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -11,6 +11,9 @@ class ProdutoBase(BaseModel):
     altura_centimetros: Optional[float] = None
     largura_centimetros: Optional[float] = None
 
+class PaginatedProdutos(BaseModel):
+    total: int
+    items: List[ProdutoResponse]
 
 class ProdutoCreate(ProdutoBase):
     pass

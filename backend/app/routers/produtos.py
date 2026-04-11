@@ -17,27 +17,32 @@ from app.schemas.produto import (
     ProdutoResponse,
     ProdutoUpdate,
     VendaResumo,
+    PaginatedProdutos,
 )
 
 router = APIRouter(prefix="/produtos", tags=["Produtos"])
 
 
-@router.get("/", response_model=List[ProdutoResponse])
+@router.get("/", response_model=PaginatedProdutos)
 def listar_produtos(
-busca: Optional[str] = Query(None),
-categoria: Optional[str] = Query(None),
-skip: int = Query(0, ge=0),
-limit: int = Query(20, ge=1, le=100),db: Session = Depends(get_db),
+    busca: Optional[str] = Query(None),
+    categoria: Optional[str] = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
 ):
-    """Lista todos os produtos. Filtra por nome ou categoria quando `busca` é informado."""
     query = db.query(Produto)
     if busca:
         termo = f"%{busca}%"
         query = query.filter(
             Produto.nome_produto.ilike(termo) | Produto.categoria_produto.ilike(termo)
         )
-    return query.order_by(Produto.nome_produto).all()
-
+        if categoria:
+            query = query.filter(Produto.categoria_produto == categoria)
+    total = query.count()
+    items = query.order_by(Produto.nome_produto).offset(skip).limit(limit).all()
+            
+    return {"total": total, "items": items}
 
 @router.get("/{id_produto}", response_model=ProdutoDetalhes)
 def obter_produto(id_produto: str, db: Session = Depends(get_db)):

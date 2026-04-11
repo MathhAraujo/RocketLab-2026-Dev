@@ -5,6 +5,7 @@ from app.schemas.produto import (
     ProdutoDetalhes,
     AvaliacaoResumo,
     VendaResumo,
+    PaginatedProdutos,
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "ProdutoDetalhes",
     "AvaliacaoResumo",
     "VendaResumo",
+    "PaginatedProdutos",
 ]
