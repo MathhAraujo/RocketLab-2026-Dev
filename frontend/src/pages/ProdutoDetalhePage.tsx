@@ -14,7 +14,7 @@ import { StarRating } from "../components/ui/StarRating";
 import type { AvaliacaoStats } from "../types/avaliacao";
 import type { Produto } from "../types/produto";
 import type { VendaStats } from "../types/venda";
-import { formatCategoria, formatCurrency, formatNumber } from "../utils/formatters";
+import { formatCategoria, formatCurrency, formatNumber, formatRating } from "../utils/formatters";
 import { CATEGORIA_IMAGENS, REVIEWS_PAGE_SIZE } from "../utils/constants";
 
 export function ProdutoDetalhePage() {
@@ -179,7 +179,7 @@ export function ProdutoDetalhePage() {
         <StatCard
           icon={Star}
           label="Avaliação"
-          value={produto.avaliacao_media.toFixed(1)}
+          value={formatRating(produto.avaliacao_media)}
           iconColor="text-amber-400"
         />
         <StatCard

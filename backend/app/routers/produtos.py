@@ -25,68 +25,21 @@ from app.schemas.produto import (
 router = APIRouter(prefix="/produtos", tags=["Produtos"])
 
 
-def _subq_vendas(db: Session):
-    return (
-        db.query(
-            ItemPedido.id_produto,
-            func.count(ItemPedido.id_item).label("total_vendas"),
-            func.avg(ItemPedido.preco_BRL).label("preco_medio"),
-        )
-        .group_by(ItemPedido.id_produto)
-        .subquery()
-    )
-
-
-def _subq_avaliacoes(db: Session):
-    return (
-        db.query(
-            ItemPedido.id_produto.label("id_produto_av"),
-            func.count(AvaliacaoPedido.id_avaliacao).label("total_avaliacoes"),
-            func.avg(AvaliacaoPedido.avaliacao).label("avaliacao_media"),
-        )
-        .join(Pedido, Pedido.id_pedido == AvaliacaoPedido.id_pedido)
-        .join(ItemPedido, ItemPedido.id_pedido == Pedido.id_pedido)
-        .group_by(ItemPedido.id_produto)
-        .subquery()
-    )
-
-
-def _linha_para_dict(linha: tuple) -> dict:
-    produto_obj, total_vendas, preco_medio, total_avaliacoes, avaliacao_media = linha
-    return {
-        **{c.name: getattr(produto_obj, c.name) for c in produto_obj.__table__.columns},
-        "total_vendas": total_vendas,
-        "preco_medio": float(preco_medio) if preco_medio is not None else None,
-        "total_avaliacoes": total_avaliacoes,
-        "avaliacao_media": float(avaliacao_media) if avaliacao_media is not None else None,
-    }
-
-
-def _buscar_produto_enriquecido(id_produto: str, db: Session) -> Optional[dict]:
-    sq_v = _subq_vendas(db)
-    sq_a = _subq_avaliacoes(db)
-    linha = (
-        db.query(
-            Produto,
-            func.coalesce(sq_v.c.total_vendas, 0).label("total_vendas"),
-            func.coalesce(sq_v.c.preco_medio, None).label("preco_medio"),
-            func.coalesce(sq_a.c.total_avaliacoes, 0).label("total_avaliacoes"),
-            func.coalesce(sq_a.c.avaliacao_media, None).label("avaliacao_media"),
-        )
-        .outerjoin(sq_v, sq_v.c.id_produto == Produto.id_produto)
-        .outerjoin(sq_a, sq_a.c.id_produto_av == Produto.id_produto)
-        .filter(Produto.id_produto == id_produto)
-        .first()
-    )
-    return _linha_para_dict(linha) if linha else None
+def _buscar_produto(id_produto: str, db: Session) -> Optional[dict]:
+    p = db.query(Produto).filter(Produto.id_produto == id_produto).first()
+    if not p:
+        return None
+    return {c.name: getattr(p, c.name) for c in p.__table__.columns}
 
 
 _ORDENACAO = {
-    "nome_produto": lambda sv, sa: Produto.nome_produto,
-    "categoria_produto": lambda sv, sa: Produto.categoria_produto,
-    "preco_medio": lambda sv, sa: sv.c.preco_medio,
-    "avaliacao_media": lambda sv, sa: sa.c.avaliacao_media,
-    "total_vendas": lambda sv, sa: sv.c.total_vendas,
+    "nome_produto": [Produto.nome_produto],
+    "categoria_produto": [Produto.categoria_produto],
+    "preco_medio": [Produto.preco_medio],
+    "avaliacao_media": [Produto.avaliacao_media, Produto.total_avaliacoes],
+    "avaliacoes": [Produto.avaliacao_media, Produto.total_avaliacoes],
+    "total_vendas": [Produto.total_vendas],
+    "vendas": [Produto.total_vendas],
 }
 
 
@@ -105,20 +58,7 @@ def listar_produtos(
     ordem: str = Query("asc", alias="order"),
     db: Session = Depends(get_db),
 ):
-    sq_v = _subq_vendas(db)
-    sq_a = _subq_avaliacoes(db)
-
-    query = (
-        db.query(
-            Produto,
-            func.coalesce(sq_v.c.total_vendas, 0).label("total_vendas"),
-            func.coalesce(sq_v.c.preco_medio, None).label("preco_medio"),
-            func.coalesce(sq_a.c.total_avaliacoes, 0).label("total_avaliacoes"),
-            func.coalesce(sq_a.c.avaliacao_media, None).label("avaliacao_media"),
-        )
-        .outerjoin(sq_v, sq_v.c.id_produto == Produto.id_produto)
-        .outerjoin(sq_a, sq_a.c.id_produto_av == Produto.id_produto)
-    )
+    query = db.query(Produto)
 
     if busca:
         termo = f"%{busca}%"
@@ -130,15 +70,14 @@ def listar_produtos(
 
     total = query.count()
 
-    coluna_fn = _ORDENACAO.get(ordenar_por, _ORDENACAO["nome_produto"])
-    coluna = coluna_fn(sq_v, sq_a)
-    coluna_ordenada = coluna.desc() if ordem == "desc" else coluna.asc()
+    colunas = _ORDENACAO.get(ordenar_por, _ORDENACAO["nome_produto"])
+    colunas_ordenadas = [coluna.desc() if ordem == "desc" else coluna.asc() for coluna in colunas]
 
     skip = (pagina - 1) * por_pagina
-    linhas = query.order_by(coluna_ordenada).offset(skip).limit(por_pagina).all()
+    linhas = query.order_by(*colunas_ordenadas).offset(skip).limit(por_pagina).all()
 
     return {
-        "items": [ProdutoListItem(**_linha_para_dict(l)) for l in linhas],
+        "items": [ProdutoListItem(**{c.name: getattr(l, c.name) for c in l.__table__.columns}) for l in linhas],
         "total": total,
         "page": pagina,
         "per_page": por_pagina,
@@ -169,7 +108,7 @@ def listar_categorias(db: Session = Depends(get_db)):
     description="Retorna detalhes completos de um produto específico com base no seu ID.",
 )
 def obter_produto(id_produto: str, db: Session = Depends(get_db)):
-    produto = _buscar_produto_enriquecido(id_produto, db)
+    produto = _buscar_produto(id_produto, db)
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     return produto
@@ -186,7 +125,7 @@ def criar_produto(payload: ProdutoCreate, db: Session = Depends(get_db)):
     novo = Produto(id_produto=uuid.uuid4().hex, **payload.model_dump())
     db.add(novo)
     db.commit()
-    return _buscar_produto_enriquecido(novo.id_produto, db)
+    return _buscar_produto(novo.id_produto, db)
 
 
 @router.put(
@@ -209,7 +148,7 @@ def atualizar_produto(
     for campo, valor in campos.items():
         setattr(produto, campo, valor)
     db.commit()
-    return _buscar_produto_enriquecido(id_produto, db)
+    return _buscar_produto(id_produto, db)
 
 
 @router.delete(

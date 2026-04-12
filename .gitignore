@@ -24,3 +24,7 @@ venv/
 # Build
 dist/
 build/
+
+# Documentação gerada por ferramentas
+docs/
+.claude/
