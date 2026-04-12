@@ -4,6 +4,9 @@ export interface AvaliacaoItem {
   titulo_comentario: string | null;
   comentario: string | null;
   data_comentario: string | null;
+  resposta_admin: string | null;
+  autor_resposta: string | null;
+  data_resposta: string | null;
 }
 
 export interface AvaliacaoStats {

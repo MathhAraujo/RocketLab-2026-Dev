@@ -28,11 +28,7 @@ def upgrade() -> None:
     # )
     # op.create_index(op.f('ix_usuarios_username'), 'usuarios', ['username'], unique=True)
     # ### end Alembic commands ###
-
-    import uuid
-    import bcrypt
-    hashed = bcrypt.hashpw(b"admin", bcrypt.gensalt()).decode()
-    op.execute(f"INSERT INTO usuarios (id_usuario, username, hashed_password, is_admin) VALUES ('{uuid.uuid4().hex}', 'admin', '{hashed}', 1)")
+    pass
 
 
 def downgrade() -> None:

@@ -261,7 +261,22 @@ export function ProdutoDetalhePage() {
           >
             <AvaliacaoDistribuicao stats={avaliacoes} />
           </div>
-          <AvaliacoesList stats={avaliacoes} onPageChange={setAvaliacoesPage} />
+          <AvaliacoesList
+            stats={avaliacoes}
+            onPageChange={setAvaliacoesPage}
+            onRespostaPublicada={(av) => {
+              setAvaliacoes((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      avaliacoes: prev.avaliacoes.map((a) =>
+                        a.id_avaliacao === av.id_avaliacao ? av : a
+                      ),
+                    }
+                  : prev
+              );
+            }}
+          />
         </section>
       )}
 

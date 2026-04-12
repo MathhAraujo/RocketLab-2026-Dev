@@ -20,6 +20,7 @@ from app.schemas.produto import (
     ProdutoDetalhe,
     ProdutoListItem,
     ProdutoUpdate,
+    RespostaRequest,
     VendaStats,
 )
 
@@ -277,6 +278,11 @@ def listar_avaliacoes_produto(
                 data_comentario=(
                     av.data_comentario.isoformat() if av.data_comentario else None
                 ),
+                resposta_admin=av.resposta_admin,
+                autor_resposta=av.autor_resposta,
+                data_resposta=(
+                    av.data_resposta.isoformat() if av.data_resposta else None
+                ),
             )
             for av in avaliacoes
         ],
@@ -284,4 +290,41 @@ def listar_avaliacoes_produto(
         page=pagina,
         per_page=por_pagina,
         pages=ceil(total / por_pagina) if total > 0 else 0,
+    )
+
+
+@router.post(
+    "/avaliacoes/{id_avaliacao}/resposta",
+    response_model=ItemAvaliacao,
+    summary="Responder Avaliação",
+    description="Permite que um administrador publique uma resposta à avaliação de um consumidor.",
+    responses={
+        404: {"description": "Avaliação não encontrada."},
+        403: {"description": "Privilégios insuficientes para realizar esta ação."},
+    },
+)
+def responder_avaliacao(
+    id_avaliacao: str,
+    payload: RespostaRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    from datetime import datetime
+    av = db.query(AvaliacaoPedido).filter(AvaliacaoPedido.id_avaliacao == id_avaliacao).first()
+    if not av:
+        raise HTTPException(status_code=404, detail="Avaliação não encontrada")
+    av.resposta_admin = payload.resposta
+    av.autor_resposta = current_user.username
+    av.data_resposta = datetime.utcnow()
+    db.commit()
+    db.refresh(av)
+    return ItemAvaliacao(
+        id_avaliacao=av.id_avaliacao,
+        avaliacao=av.avaliacao,
+        titulo_comentario=av.titulo_comentario,
+        comentario=av.comentario,
+        data_comentario=av.data_comentario.isoformat() if av.data_comentario else None,
+        resposta_admin=av.resposta_admin,
+        autor_resposta=av.autor_resposta,
+        data_resposta=av.data_resposta.isoformat() if av.data_resposta else None,
     )

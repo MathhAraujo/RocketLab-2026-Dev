@@ -1,4 +1,4 @@
-import type { AvaliacaoStats } from "../types/avaliacao";
+import type { AvaliacaoItem, AvaliacaoStats } from "../types/avaliacao";
 import type { PaginatedResponse } from "../types/pagination";
 import type {
   Produto,
@@ -69,4 +69,15 @@ export async function updateProduto(
 
 export async function deleteProduto(id: string): Promise<void> {
   await api.delete(`/produtos/${id}`);
+}
+
+export async function responderAvaliacao(
+  idAvaliacao: string,
+  resposta: string
+): Promise<AvaliacaoItem> {
+  const response = await api.post<AvaliacaoItem>(
+    `/produtos/avaliacoes/${idAvaliacao}/resposta`,
+    { resposta }
+  );
+  return response.data;
 }

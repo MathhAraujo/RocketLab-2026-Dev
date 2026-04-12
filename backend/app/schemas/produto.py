@@ -68,6 +68,9 @@ class ItemAvaliacao(BaseModel):
     titulo_comentario: Optional[str] = None
     comentario: Optional[str] = None
     data_comentario: Optional[str] = None
+    resposta_admin: Optional[str] = None
+    autor_resposta: Optional[str] = None
+    data_resposta: Optional[str] = None
 
 
 class AvaliacaoStats(BaseModel):
@@ -79,3 +82,7 @@ class AvaliacaoStats(BaseModel):
     page: int
     per_page: int
     pages: int
+
+
+class RespostaRequest(BaseModel):
+    resposta: str
