@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { login as apiLogin } from "../api/auth";
+import { login as apiLogin, getMe } from "../api/auth";
 import type { AuthUser, LoginRequest } from "../types/auth";
 import { AUTH_STORAGE_KEYS } from "../utils/constants";
 
@@ -39,11 +39,12 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 
   const login = useCallback(async (data: LoginRequest) => {
     const response = await apiLogin(data);
-    const authUser: AuthUser = { username: data.username };
     localStorage.setItem(AUTH_STORAGE_KEYS.token, response.access_token);
-    localStorage.setItem(AUTH_STORAGE_KEYS.user, JSON.stringify(authUser));
     setToken(response.access_token);
-    setUser(authUser);
+    // Fetch full user info (including is_admin) from the server
+    const me = await getMe();
+    localStorage.setItem(AUTH_STORAGE_KEYS.user, JSON.stringify(me));
+    setUser(me);
   }, []);
 
   const logout = useCallback(() => {

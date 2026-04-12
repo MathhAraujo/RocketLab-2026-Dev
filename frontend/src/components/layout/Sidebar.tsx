@@ -4,23 +4,15 @@ import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../contexts/ThemeContext";
 
 interface SidebarProps {
-  isOpen: boolean;       // mobile drawer open
-  isExpanded: boolean;   // desktop hover-expand
+  isOpen: boolean;
+  isExpanded: boolean;
   onClose: () => void;
   onExpandChange: (expanded: boolean) => void;
 }
 
 const navItems = [
-  {
-    to: "/catalogo",
-    icon: LayoutGrid,
-    label: "Catálogo",
-  },
-  {
-    to: "/produtos/novo",
-    icon: PackagePlus,
-    label: "Novo Produto",
-  },
+  { to: "/catalogo", icon: LayoutGrid, label: "Catálogo", adminOnly: false },
+  { to: "/produtos/novo", icon: PackagePlus, label: "Novo Produto", adminOnly: true },
 ];
 
 export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonly<SidebarProps>) {
@@ -73,7 +65,7 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
           )}
         </div>
 
-        {navItems.map(({ to, icon: Icon, label }) => (
+        {navItems.filter(item => !item.adminOnly || user?.is_admin).map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}

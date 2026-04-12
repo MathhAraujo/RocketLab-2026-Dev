@@ -10,4 +10,5 @@ export interface TokenResponse {
 
 export interface AuthUser {
   username: string;
+  is_admin: boolean;
 }

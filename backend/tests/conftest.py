@@ -15,6 +15,8 @@ from app.models.consumidor import Consumidor
 from app.models.item_pedido import ItemPedido
 from app.models.pedido import Pedido
 from app.models.vendedor import Vendedor
+from app.models.usuario import Usuario
+from app.security import get_password_hash, create_access_token
 
 
 @pytest.fixture
@@ -31,14 +33,67 @@ def db():
     sessao.close()
 
 
+def _seed_admin(db):
+    admin = Usuario(
+        id_usuario=uuid.uuid4().hex,
+        username="admin",
+        hashed_password=get_password_hash("admin"),
+        is_admin=True,
+    )
+    db.add(admin)
+    db.commit()
+    return admin
+
+
+def _seed_user(db):
+    user = Usuario(
+        id_usuario=uuid.uuid4().hex,
+        username="visitante",
+        hashed_password=get_password_hash("1234"),
+        is_admin=False,
+    )
+    db.add(user)
+    db.commit()
+    return user
+
+
 @pytest.fixture
 def client(db):
+    _seed_admin(db)
+
     def override_get_db():
         yield db
 
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def admin_headers(client):
+    r = client.post("/api/auth/login", json={"username": "admin", "password": "admin"})
+    token = r.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def user_client(db):
+    _seed_admin(db)
+    _seed_user(db)
+
+    def override_get_db():
+        yield db
+
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def user_headers(user_client):
+    r = user_client.post("/api/auth/login", json={"username": "visitante", "password": "1234"})
+    token = r.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
 
 
 def criar_consumidor(db) -> str:

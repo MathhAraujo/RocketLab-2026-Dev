@@ -7,6 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.dependencies import get_current_user, require_admin
 from app.models.avaliacao_pedido import AvaliacaoPedido
 from app.models.item_pedido import ItemPedido
 from app.models.pedido import Pedido
@@ -57,6 +58,7 @@ def listar_produtos(
     ordenar_por: str = Query("nome_produto", alias="sort_by"),
     ordem: str = Query("asc", alias="order"),
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     query = db.query(Produto)
 
@@ -91,7 +93,7 @@ def listar_produtos(
     summary="Listar Categorias",
     description="Retorna todas as categorias únicas de produtos registradas.",
 )
-def listar_categorias(db: Session = Depends(get_db)):
+def listar_categorias(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     rows = (
         db.query(Produto.categoria_produto)
         .distinct()
@@ -107,7 +109,7 @@ def listar_categorias(db: Session = Depends(get_db)):
     summary="Obter Produto",
     description="Retorna detalhes completos de um produto específico com base no seu ID.",
 )
-def obter_produto(id_produto: str, db: Session = Depends(get_db)):
+def obter_produto(id_produto: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     produto = _buscar_produto(id_produto, db)
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
@@ -121,7 +123,7 @@ def obter_produto(id_produto: str, db: Session = Depends(get_db)):
     summary="Criar Produto",
     description="Registra um novo produto.",
 )
-def criar_produto(payload: ProdutoCreate, db: Session = Depends(get_db)):
+def criar_produto(payload: ProdutoCreate, db: Session = Depends(get_db), current_user=Depends(require_admin)):
     novo = Produto(id_produto=uuid.uuid4().hex, **payload.model_dump())
     db.add(novo)
     db.commit()
@@ -135,7 +137,7 @@ def criar_produto(payload: ProdutoCreate, db: Session = Depends(get_db)):
     description="Altera as propriedades de um produto existente com base em seu ID.",
 )
 def atualizar_produto(
-    id_produto: str, payload: ProdutoUpdate, db: Session = Depends(get_db)
+    id_produto: str, payload: ProdutoUpdate, db: Session = Depends(get_db), current_user=Depends(require_admin)
 ):
     campos = payload.model_dump(exclude_unset=True)
     if not campos:
@@ -157,7 +159,7 @@ def atualizar_produto(
     summary="Deletar Produto",
     description="Deleta um produto de forma definitiva.",
 )
-def deletar_produto(id_produto: str, db: Session = Depends(get_db)):
+def deletar_produto(id_produto: str, db: Session = Depends(get_db), current_user=Depends(require_admin)):
     produto = db.query(Produto).filter(Produto.id_produto == id_produto).first()
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
@@ -171,7 +173,7 @@ def deletar_produto(id_produto: str, db: Session = Depends(get_db)):
     summary="Obter Vendas do Produto",
     description="Calcula e retorna estatísticas consolidadas de venda de um produto.",
 )
-def obter_vendas_produto(id_produto: str, db: Session = Depends(get_db)):
+def obter_vendas_produto(id_produto: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     if not db.query(Produto).filter(Produto.id_produto == id_produto).first():
         raise HTTPException(status_code=404, detail="Produto não encontrado")
 
@@ -218,6 +220,7 @@ def listar_avaliacoes_produto(
     pagina: int = Query(1, alias="page", ge=1),
     por_pagina: int = Query(10, alias="per_page", ge=1, le=100),
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     if not db.query(Produto).filter(Produto.id_produto == id_produto).first():
         raise HTTPException(status_code=404, detail="Produto não encontrado")

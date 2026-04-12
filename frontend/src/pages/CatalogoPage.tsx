@@ -8,12 +8,14 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { SkeletonCard } from "../components/ui/Loading";
 import { Pagination } from "../components/ui/Pagination";
 import { Button } from "../components/ui/Button";
+import { useAuth } from "../hooks/useAuth";
 import { useDebounce } from "../hooks/useDebounce";
 import { usePagination } from "../hooks/usePagination";
 import { useProdutos } from "../hooks/useProdutos";
 
 export function CatalogoPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { page, perPage, goToPage, reset } = usePagination();
 
   const [searchInput, setSearchInput] = useState("");
@@ -96,10 +98,12 @@ export function CatalogoPage() {
             </p>
           )}
         </div>
-        <Button onClick={() => navigate("/produtos/novo")}>
-          <Plus size={16} />
-          Novo Produto
-        </Button>
+        {user?.is_admin && (
+          <Button onClick={() => navigate("/produtos/novo")}>
+            <Plus size={16} />
+            Novo Produto
+          </Button>
+        )}
       </div>
 
       <ProdutoFilters

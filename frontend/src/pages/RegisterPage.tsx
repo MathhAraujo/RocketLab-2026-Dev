@@ -1,31 +1,44 @@
-import { ShoppingBag, Sun, Moon } from "lucide-react";
+import { ShoppingBag, Sun, Moon, ArrowLeft } from "lucide-react";
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { register } from "../api/auth";
 import { useTheme } from "../contexts/ThemeContext";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 
-export function LoginPage() {
-  const { user, login } = useAuth();
+export function RegisterPage() {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  if (user) return <Navigate to="/catalogo" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("As senhas não coincidem");
+      return;
+    }
+
+    if (password.length < 4) {
+      setError("A senha deve conter pelo menos 4 caracteres");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await login({ username, password });
-      navigate("/catalogo", { replace: true });
-    } catch {
-      setError("Usuário ou senha inválidos");
+      await register({ username, password });
+      // Redirects back to login on success
+      navigate("/login", { replace: true });
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data
+          ?.detail ?? "Erro ao criar conta";
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -76,27 +89,35 @@ export function LoginPage() {
             Mercadão
           </h1>
           <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-            Painel administrativo
+            Cadastro de Novo Visitante
           </p>
         </div>
 
         {/* Card */}
         <div
-          className="rounded-2xl p-8 shadow-2xl"
+          className="rounded-2xl p-8 shadow-2xl relative"
           style={{
             background: "var(--color-bg-surface)",
             border: "1px solid var(--color-border)",
           }}
         >
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <button
+            onClick={() => navigate("/login")}
+            className="absolute top-4 left-4 p-2 transition-colors hover:bg-zinc-800/60 rounded-full"
+            style={{ color: "var(--color-text-secondary)" }}
+            aria-label="Voltar para login"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          
+          <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <Input
               id="username"
-              label="Usuário"
+              label="Nome de Usuário"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="admin"
-              autoComplete="username"
+              placeholder="seu_usuario"
               required
             />
             <Input
@@ -106,7 +127,15 @@ export function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              autoComplete="current-password"
+              required
+            />
+            <Input
+              id="confirmPassword"
+              label="Confirmar Senha"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
               required
             />
             {error && (
@@ -122,18 +151,8 @@ export function LoginPage() {
               </p>
             )}
             <Button type="submit" isLoading={isLoading} className="w-full mt-2">
-              Entrar
+              Criar Conta
             </Button>
-            <div className="mt-4 flex flex-col items-center gap-2 text-sm pt-2" style={{ color: "var(--color-text-secondary)" }}>
-              <p>Ainda não tem uma conta?</p>
-              <button
-                type="button"
-                onClick={() => navigate("/register")}
-                className="font-medium text-indigo-400 transition-colors hover:text-indigo-300 hover:underline"
-              >
-                Criar uma nova conta
-              </button>
-            </div>
           </form>
         </div>
       </div>

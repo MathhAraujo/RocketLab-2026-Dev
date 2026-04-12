@@ -11,6 +11,7 @@ import { Loading } from "../components/ui/Loading";
 import { Modal } from "../components/ui/Modal";
 import { StatCard } from "../components/ui/StatCard";
 import { StarRating } from "../components/ui/StarRating";
+import { useAuth } from "../hooks/useAuth";
 import type { AvaliacaoStats } from "../types/avaliacao";
 import type { Produto } from "../types/produto";
 import type { VendaStats } from "../types/venda";
@@ -20,6 +21,7 @@ import { CATEGORIA_IMAGENS, REVIEWS_PAGE_SIZE } from "../utils/constants";
 export function ProdutoDetalhePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [produto, setProduto] = useState<Produto | null>(null);
   const [vendas, setVendas] = useState<VendaStats | null>(null);
@@ -151,14 +153,18 @@ export function ProdutoDetalhePage() {
           </div>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button variant="secondary" onClick={() => navigate(`/produtos/${id}/editar`)}>
-            <Edit size={15} />
-            Editar
-          </Button>
-          <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
-            <Trash2 size={15} />
-            Excluir
-          </Button>
+          {user?.is_admin && (
+            <>
+              <Button variant="secondary" onClick={() => navigate(`/produtos/${id}/editar`)}>
+                <Edit size={15} />
+                Editar
+              </Button>
+              <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
+                <Trash2 size={15} />
+                Excluir
+              </Button>
+            </>
+          )}
         </div>
       </div>
 

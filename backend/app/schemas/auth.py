@@ -13,3 +13,4 @@ class TokenResponse(BaseModel):
 
 class UsuarioAutenticado(BaseModel):
     username: str
+    is_admin: bool

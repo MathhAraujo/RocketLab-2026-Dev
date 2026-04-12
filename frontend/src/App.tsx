@@ -5,6 +5,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { useAuth } from "./hooks/useAuth";
 import { CatalogoPage } from "./pages/CatalogoPage";
 import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { ProdutoDetalhePage } from "./pages/ProdutoDetalhePage";
 import { ProdutoFormPage } from "./pages/ProdutoFormPage";
@@ -20,6 +21,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       <Route path="/" element={<ProtectedLayout />}>
         <Route index element={<Navigate to="/catalogo" replace />} />
         <Route path="catalogo" element={<CatalogoPage />} />

@@ -15,12 +15,12 @@ PRODUTO_BASE = {
 }
 
 
-def criar(client, dados=None):
-    return client.post("/api/produtos/", json=dados or PRODUTO_BASE)
+def criar(client, admin_headers, dados=None):
+    return client.post("/api/produtos/", json=dados or PRODUTO_BASE, headers=admin_headers)
 
 
-def test_listar_vazio(client):
-    r = client.get("/api/produtos/")
+def test_listar_vazio(client, admin_headers):
+    r = client.get("/api/produtos/", headers=admin_headers)
     assert r.status_code == 200
     body = r.json()
     assert body["total"] == 0
@@ -29,23 +29,23 @@ def test_listar_vazio(client):
     assert body["pages"] == 0
 
 
-def test_criar_produto(client):
-    r = criar(client)
+def test_criar_produto(client, admin_headers):
+    r = criar(client, admin_headers)
     assert r.status_code == 201
     body = r.json()
     assert body["nome_produto"] == PRODUTO_BASE["nome_produto"]
     assert "id_produto" in body
 
 
-def test_listar_retorna_produto_criado(client):
-    criar(client)
-    r = client.get("/api/produtos/")
+def test_listar_retorna_produto_criado(client, admin_headers):
+    criar(client, admin_headers)
+    r = client.get("/api/produtos/", headers=admin_headers)
     assert r.json()["total"] == 1
 
 
-def test_listagem_inclui_campos_calculados(client):
-    criar(client)
-    r = client.get("/api/produtos/")
+def test_listagem_inclui_campos_calculados(client, admin_headers):
+    criar(client, admin_headers)
+    r = client.get("/api/produtos/", headers=admin_headers)
     item = r.json()["items"][0]
     assert "preco_medio" in item
     assert "avaliacao_media" in item
@@ -57,26 +57,26 @@ def test_listagem_inclui_campos_calculados(client):
     assert item["avaliacao_media"] is None
 
 
-def test_busca_por_nome(client):
-    criar(client)
-    r = client.get("/api/produtos/?search=Tênis")
+def test_busca_por_nome(client, admin_headers):
+    criar(client, admin_headers)
+    r = client.get("/api/produtos/?search=Tênis", headers=admin_headers)
     assert r.json()["total"] == 1
-    r = client.get("/api/produtos/?search=inexistente")
+    r = client.get("/api/produtos/?search=inexistente", headers=admin_headers)
     assert r.json()["total"] == 0
 
 
-def test_filtro_por_categoria(client):
-    criar(client)
-    r = client.get("/api/produtos/?categoria=calcados")
+def test_filtro_por_categoria(client, admin_headers):
+    criar(client, admin_headers)
+    r = client.get("/api/produtos/?categoria=calcados", headers=admin_headers)
     assert r.json()["total"] == 1
-    r = client.get("/api/produtos/?categoria=outra")
+    r = client.get("/api/produtos/?categoria=outra", headers=admin_headers)
     assert r.json()["total"] == 0
 
 
-def test_paginacao(client):
+def test_paginacao(client, admin_headers):
     for i in range(5):
-        criar(client, {**PRODUTO_BASE, "nome_produto": f"Produto {i}"})
-    r = client.get("/api/produtos/?page=1&per_page=2")
+        criar(client, admin_headers, {**PRODUTO_BASE, "nome_produto": f"Produto {i}"})
+    r = client.get("/api/produtos/?page=1&per_page=2", headers=admin_headers)
     body = r.json()
     assert body["total"] == 5
     assert len(body["items"]) == 2
@@ -85,92 +85,91 @@ def test_paginacao(client):
     assert body["per_page"] == 2
 
 
-def test_paginacao_segunda_pagina(client):
+def test_paginacao_segunda_pagina(client, admin_headers):
     for i in range(5):
-        criar(client, {**PRODUTO_BASE, "nome_produto": f"Produto {i}"})
-    r = client.get("/api/produtos/?page=2&per_page=2")
+        criar(client, admin_headers, {**PRODUTO_BASE, "nome_produto": f"Produto {i}"})
+    r = client.get("/api/produtos/?page=2&per_page=2", headers=admin_headers)
     body = r.json()
     assert body["total"] == 5
     assert len(body["items"]) == 2
     assert body["page"] == 2
 
 
-def test_ordenacao_por_nome_asc(client):
-    criar(client, {**PRODUTO_BASE, "nome_produto": "Zebra"})
-    criar(client, {**PRODUTO_BASE, "nome_produto": "Abacaxi"})
-    r = client.get("/api/produtos/?sort_by=nome_produto&order=asc")
+def test_ordenacao_por_nome_asc(client, admin_headers):
+    criar(client, admin_headers, {**PRODUTO_BASE, "nome_produto": "Zebra"})
+    criar(client, admin_headers, {**PRODUTO_BASE, "nome_produto": "Abacaxi"})
+    r = client.get("/api/produtos/?sort_by=nome_produto&order=asc", headers=admin_headers)
     items = r.json()["items"]
     assert items[0]["nome_produto"] == "Abacaxi"
     assert items[1]["nome_produto"] == "Zebra"
 
 
-def test_ordenacao_por_nome_desc(client):
-    criar(client, {**PRODUTO_BASE, "nome_produto": "Zebra"})
-    criar(client, {**PRODUTO_BASE, "nome_produto": "Abacaxi"})
-    r = client.get("/api/produtos/?sort_by=nome_produto&order=desc")
+def test_ordenacao_por_nome_desc(client, admin_headers):
+    criar(client, admin_headers, {**PRODUTO_BASE, "nome_produto": "Zebra"})
+    criar(client, admin_headers, {**PRODUTO_BASE, "nome_produto": "Abacaxi"})
+    r = client.get("/api/produtos/?sort_by=nome_produto&order=desc", headers=admin_headers)
     items = r.json()["items"]
     assert items[0]["nome_produto"] == "Zebra"
     assert items[1]["nome_produto"] == "Abacaxi"
 
 
-def test_ordenacao_por_categoria(client):
-    criar(client, {**PRODUTO_BASE, "nome_produto": "P1", "categoria_produto": "roupas"})
-    criar(client, {**PRODUTO_BASE, "nome_produto": "P2", "categoria_produto": "calcados"})
-    r = client.get("/api/produtos/?sort_by=categoria_produto&order=asc")
+def test_ordenacao_por_categoria(client, admin_headers):
+    criar(client, admin_headers, {**PRODUTO_BASE, "nome_produto": "P1", "categoria_produto": "roupas"})
+    criar(client, admin_headers, {**PRODUTO_BASE, "nome_produto": "P2", "categoria_produto": "calcados"})
+    r = client.get("/api/produtos/?sort_by=categoria_produto&order=asc", headers=admin_headers)
     items = r.json()["items"]
     assert items[0]["categoria_produto"] == "calcados"
     assert items[1]["categoria_produto"] == "roupas"
 
 
-def test_obter_produto(client):
-    id_ = criar(client).json()["id_produto"]
-    r = client.get(f"/api/produtos/{id_}")
+def test_obter_produto(client, admin_headers):
+    id_ = criar(client, admin_headers).json()["id_produto"]
+    r = client.get(f"/api/produtos/{id_}", headers=admin_headers)
     assert r.status_code == 200
     body = r.json()
     assert body["id_produto"] == id_
     assert "total_vendas" in body
     assert "preco_medio" in body
-    # resposta deve ser flat — sem dicionários aninhados de vendas/avaliacoes
     assert "vendas" not in body
     assert "avaliacoes" not in body
 
 
-def test_obter_produto_inexistente(client):
-    r = client.get("/api/produtos/id-que-nao-existe")
+def test_obter_produto_inexistente(client, admin_headers):
+    r = client.get("/api/produtos/id-que-nao-existe", headers=admin_headers)
     assert r.status_code == 404
 
 
-def test_atualizar_produto(client):
-    id_ = criar(client).json()["id_produto"]
-    r = client.put(f"/api/produtos/{id_}", json={"nome_produto": "Novo Nome"})
+def test_atualizar_produto(client, admin_headers):
+    id_ = criar(client, admin_headers).json()["id_produto"]
+    r = client.put(f"/api/produtos/{id_}", json={"nome_produto": "Novo Nome"}, headers=admin_headers)
     assert r.status_code == 200
     assert r.json()["nome_produto"] == "Novo Nome"
 
 
-def test_atualizar_body_vazio_retorna_422(client):
-    id_ = criar(client).json()["id_produto"]
-    r = client.put(f"/api/produtos/{id_}", json={})
+def test_atualizar_body_vazio_retorna_422(client, admin_headers):
+    id_ = criar(client, admin_headers).json()["id_produto"]
+    r = client.put(f"/api/produtos/{id_}", json={}, headers=admin_headers)
     assert r.status_code == 422
 
 
-def test_deletar_produto(client):
-    id_ = criar(client).json()["id_produto"]
-    r = client.delete(f"/api/produtos/{id_}")
+def test_deletar_produto(client, admin_headers):
+    id_ = criar(client, admin_headers).json()["id_produto"]
+    r = client.delete(f"/api/produtos/{id_}", headers=admin_headers)
     assert r.status_code == 204
-    r = client.get(f"/api/produtos/{id_}")
+    r = client.get(f"/api/produtos/{id_}", headers=admin_headers)
     assert r.status_code == 404
 
 
-def test_listar_categorias(client):
-    criar(client)
-    r = client.get("/api/produtos/categorias")
+def test_listar_categorias(client, admin_headers):
+    criar(client, admin_headers)
+    r = client.get("/api/produtos/categorias", headers=admin_headers)
     assert r.status_code == 200
     assert "calcados" in r.json()
 
 
-def test_vendas_produto_sem_dados(client):
-    id_ = criar(client).json()["id_produto"]
-    r = client.get(f"/api/produtos/{id_}/vendas")
+def test_vendas_produto_sem_dados(client, admin_headers):
+    id_ = criar(client, admin_headers).json()["id_produto"]
+    r = client.get(f"/api/produtos/{id_}/vendas", headers=admin_headers)
     assert r.status_code == 200
     body = r.json()
     assert body["total_vendas"] == 0
@@ -182,14 +181,14 @@ def test_vendas_produto_sem_dados(client):
     assert body["vendas_por_status"] == {}
 
 
-def test_vendas_produto_com_dados(client, db):
-    id_produto = criar(client).json()["id_produto"]
+def test_vendas_produto_com_dados(client, admin_headers, db):
+    id_produto = criar(client, admin_headers).json()["id_produto"]
     id_consumidor = criar_consumidor(db)
     id_vendedor = criar_vendedor(db)
     criar_pedido_com_item(db, id_produto, id_consumidor, id_vendedor, preco=100.0)
     criar_pedido_com_item(db, id_produto, id_consumidor, id_vendedor, preco=200.0)
 
-    r = client.get(f"/api/produtos/{id_produto}/vendas")
+    r = client.get(f"/api/produtos/{id_produto}/vendas", headers=admin_headers)
     assert r.status_code == 200
     body = r.json()
     assert body["total_vendas"] == 2
@@ -202,14 +201,14 @@ def test_vendas_produto_com_dados(client, db):
     assert body["vendas_por_status"]["entregue"] == 2
 
 
-def test_vendas_produto_inexistente(client):
-    r = client.get("/api/produtos/id-inexistente/vendas")
+def test_vendas_produto_inexistente(client, admin_headers):
+    r = client.get("/api/produtos/id-inexistente/vendas", headers=admin_headers)
     assert r.status_code == 404
 
 
-def test_avaliacoes_produto_sem_dados(client):
-    id_ = criar(client).json()["id_produto"]
-    r = client.get(f"/api/produtos/{id_}/avaliacoes")
+def test_avaliacoes_produto_sem_dados(client, admin_headers):
+    id_ = criar(client, admin_headers).json()["id_produto"]
+    r = client.get(f"/api/produtos/{id_}/avaliacoes", headers=admin_headers)
     assert r.status_code == 200
     body = r.json()
     assert body["total_avaliacoes"] == 0
@@ -219,8 +218,8 @@ def test_avaliacoes_produto_sem_dados(client):
     assert body["total"] == 0
 
 
-def test_avaliacoes_produto_com_dados(client, db):
-    id_produto = criar(client).json()["id_produto"]
+def test_avaliacoes_produto_com_dados(client, admin_headers, db):
+    id_produto = criar(client, admin_headers).json()["id_produto"]
     id_consumidor = criar_consumidor(db)
     id_vendedor = criar_vendedor(db)
     id_pedido1 = criar_pedido_com_item(db, id_produto, id_consumidor, id_vendedor)
@@ -228,7 +227,7 @@ def test_avaliacoes_produto_com_dados(client, db):
     criar_avaliacao(db, id_pedido1, nota=5, titulo="Ótimo", comentario="Excelente produto")
     criar_avaliacao(db, id_pedido2, nota=3)
 
-    r = client.get(f"/api/produtos/{id_produto}/avaliacoes")
+    r = client.get(f"/api/produtos/{id_produto}/avaliacoes", headers=admin_headers)
     assert r.status_code == 200
     body = r.json()
     assert body["total_avaliacoes"] == 2
@@ -239,15 +238,15 @@ def test_avaliacoes_produto_com_dados(client, db):
     assert body["total"] == 2
 
 
-def test_avaliacoes_paginacao(client, db):
-    id_produto = criar(client).json()["id_produto"]
+def test_avaliacoes_paginacao(client, admin_headers, db):
+    id_produto = criar(client, admin_headers).json()["id_produto"]
     id_consumidor = criar_consumidor(db)
     id_vendedor = criar_vendedor(db)
     for nota in range(1, 6):
         id_pedido = criar_pedido_com_item(db, id_produto, id_consumidor, id_vendedor)
         criar_avaliacao(db, id_pedido, nota=nota)
 
-    r = client.get(f"/api/produtos/{id_produto}/avaliacoes?page=1&per_page=2")
+    r = client.get(f"/api/produtos/{id_produto}/avaliacoes?page=1&per_page=2", headers=admin_headers)
     assert r.status_code == 200
     body = r.json()
     assert len(body["avaliacoes"]) == 2
@@ -257,6 +256,6 @@ def test_avaliacoes_paginacao(client, db):
     assert body["per_page"] == 2
 
 
-def test_avaliacoes_produto_inexistente(client):
-    r = client.get("/api/produtos/id-inexistente/avaliacoes")
+def test_avaliacoes_produto_inexistente(client, admin_headers):
+    r = client.get("/api/produtos/id-inexistente/avaliacoes", headers=admin_headers)
     assert r.status_code == 404
