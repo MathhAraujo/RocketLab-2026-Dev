@@ -26,6 +26,7 @@ export function LoginPage() {
       navigate("/catalogo", { replace: true });
     } catch {
       setError("Usuário ou senha inválidos");
+      setPassword("");
     } finally {
       setIsLoading(false);
     }

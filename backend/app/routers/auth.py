@@ -10,6 +10,8 @@ from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
+MIN_PASSWORD_LENGTH = 4
+
 
 @router.post(
     "/login",
@@ -55,8 +57,8 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     },
 )
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
-    if len(payload.password) < 4:
-        raise HTTPException(status_code=400, detail="A senha deve conter pelo menos 4 caracteres.")
+    if len(payload.password) < MIN_PASSWORD_LENGTH:
+        raise HTTPException(status_code=400, detail=f"A senha deve conter pelo menos {MIN_PASSWORD_LENGTH} caracteres.")
     user = db.query(Usuario).filter(Usuario.username == payload.username).first()
     if user:
         raise HTTPException(status_code=400, detail="Nome de usuário já existe.")

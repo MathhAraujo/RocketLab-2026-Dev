@@ -123,6 +123,9 @@ source .venv/bin/activate
 # Instale as dependencias
 pip install -r requirements.txt
 
+# Crie o arquivo de variaveis de ambiente
+cp .env.example .env
+
 # Execute as migrations
 alembic upgrade head
 
@@ -164,9 +167,10 @@ Ao acessar o sistema pela primeira vez, clique em "Criar uma nova conta" na tela
 | Variavel | Padrao | Descricao |
 |---|---|---|
 | `DATABASE_URL` | `sqlite:///./database.db` | URL de conexao com o banco SQLite |
-| `JWT_SECRET` | `super-secret-key-1234` | Chave secreta para assinatura dos tokens JWT |
+| `JWT_SECRET` | *(gerado automaticamente)* | Chave secreta para assinatura dos tokens JWT |
+| `ALLOWED_ORIGINS` | `["http://localhost:5173","http://127.0.0.1:5173"]` | Origens permitidas pelo CORS |
 
-Em producao, substitua `JWT_SECRET` por um valor seguro e aleatorio. Um arquivo `backend/.env.example` com os valores padrao esta disponivel no repositorio como referencia.
+Em producao, defina `JWT_SECRET` com um valor longo, aleatorio e unico. Sem um arquivo `.env` contendo `JWT_SECRET`, uma chave aleatoria e gerada a cada reinicio do servidor, invalidando todos os tokens existentes. Um arquivo `backend/.env.example` com valores de referencia esta disponivel no repositorio.
 
 ### Frontend
 
@@ -195,20 +199,10 @@ ip addr show   # ou: hostname -I
 
 ### 2. Libere o CORS no backend
 
-Abra `backend/app/main.py` e adicione a origem do celular na lista `allow_origins`. Substitua `192.168.1.100` pelo IP real da sua maquina:
+Adicione a origem do celular na variavel `ALLOWED_ORIGINS` do arquivo `backend/.env`. Substitua `192.168.1.100` pelo IP real da sua maquina:
 
-```python
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://192.168.1.100:5173",  # IP da maquina host na rede local
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+```dotenv
+ALLOWED_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173","http://192.168.1.100:5173"]
 ```
 
 ### 3. Inicie os servicos

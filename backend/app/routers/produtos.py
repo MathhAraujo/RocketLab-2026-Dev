@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from math import ceil
 from typing import List, Optional
 
@@ -325,7 +325,7 @@ async def responder_avaliacao(
         raise HTTPException(status_code=404, detail="Avaliação não encontrada")
     av.resposta_admin = payload.resposta
     av.autor_resposta = current_user.username
-    av.data_resposta = datetime.utcnow()
+    av.data_resposta = datetime.now(timezone.utc)
     db.commit()
     db.refresh(av)
     await FastAPICache.get_backend().clear()

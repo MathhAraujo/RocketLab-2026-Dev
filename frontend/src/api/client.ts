@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AUTH_STORAGE_KEYS } from "../utils/constants";
+import { AUTH_STORAGE_KEYS, LOGIN_ROUTE } from "../utils/constants";
 
 const configuredUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 const finalBaseUrl = configuredUrl.replace(/localhost|127\.0\.0\.1/, globalThis.location.hostname);
@@ -20,9 +20,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && globalThis.location.pathname !== LOGIN_ROUTE) {
       localStorage.removeItem(AUTH_STORAGE_KEYS.token);
-      globalThis.location.href = "/login";
+      globalThis.location.href = LOGIN_ROUTE;
     }
     return Promise.reject(error);
   }

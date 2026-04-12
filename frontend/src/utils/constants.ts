@@ -298,3 +298,4 @@ export const AUTH_STORAGE_KEYS = { token: 'token', user: 'user' } as const
 export const DEFAULT_PAGE_SIZE = 20
 export const REVIEWS_PAGE_SIZE = 10
 export const THEME_STORAGE_KEY = 'mercadao-theme'
+export const LOGIN_ROUTE = '/login'

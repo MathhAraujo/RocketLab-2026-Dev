@@ -1,12 +1,13 @@
-import os
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
 
-SECRET_KEY = os.getenv("JWT_SECRET", "super-secret-key-1234")
+from app.config import settings
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 1 semana
+
 
 def get_password_hash(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode()
@@ -18,4 +19,4 @@ def create_access_token(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=ALGORITHM)
