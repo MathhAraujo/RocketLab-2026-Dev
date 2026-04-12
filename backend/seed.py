@@ -1,16 +1,7 @@
-"""
-Popula o banco de dados com os arquivos CSV.
-
-Uso:
-    python seed.py
-
-Execute APÓS as migrações:
-    alembic upgrade head
-"""
-
 import csv
 import os
 import sys
+import datetime
 from datetime import datetime, date
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -62,7 +53,6 @@ def _date(val: str) -> date | None:
 
 
 def _bulk_insert(db, model, rows: list[dict]) -> None:
-    """Insere em lotes com INSERT OR IGNORE para tolerar duplicatas."""
     for i in range(0, len(rows), BATCH_SIZE):
         batch = rows[i : i + BATCH_SIZE]
         stmt = sqlite_insert(model).values(batch).on_conflict_do_nothing()

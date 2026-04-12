@@ -1,19 +1,21 @@
 from app.schemas.produto import (
     ProdutoCreate,
     ProdutoUpdate,
-    ProdutoResponse,
-    ProdutoDetalhes,
-    AvaliacaoResumo,
-    VendaResumo,
+    ProdutoListItem,
+    ProdutoDetalhe,
+    VendaStats,
+    ItemAvaliacao,
+    AvaliacaoStats,
     PaginatedProdutos,
 )
 
 __all__ = [
     "ProdutoCreate",
     "ProdutoUpdate",
-    "ProdutoResponse",
-    "ProdutoDetalhes",
-    "AvaliacaoResumo",
-    "VendaResumo",
+    "ProdutoListItem",
+    "ProdutoDetalhe",
+    "VendaStats",
+    "ItemAvaliacao",
+    "AvaliacaoStats",
     "PaginatedProdutos",
 ]

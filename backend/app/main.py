@@ -21,6 +21,11 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(produtos.router, prefix="/api")
 
 
-@app.get("/", tags=["Health"])
+@app.get(
+    "/",
+    tags=["Health"],
+    summary="Health Check",
+    description="Verifica o status da API e se está rodando corretamente.",
+)
 def health():
     return {"status": "ok", "message": "API rodando com sucesso!"}
