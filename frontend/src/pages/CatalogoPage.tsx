@@ -9,7 +9,6 @@ import { SkeletonCard } from "../components/ui/Loading";
 import { Pagination } from "../components/ui/Pagination";
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../hooks/useAuth";
-import { useDebounce } from "../hooks/useDebounce";
 import { usePagination } from "../hooks/usePagination";
 import { useProdutos } from "../hooks/useProdutos";
 
@@ -18,13 +17,11 @@ export function CatalogoPage() {
   const { user } = useAuth();
   const { page, perPage, goToPage, reset } = usePagination();
 
-  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
   const [categoria, setCategoria] = useState("");
   const [sortBy, setSortBy] = useState("vendas");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [categorias, setCategorias] = useState<string[]>([]);
-
-  const search = useDebounce(searchInput, 400);
 
   const { data, isLoading, error } = useProdutos({
     page,
@@ -40,7 +37,7 @@ export function CatalogoPage() {
   }, []);
 
   const handleSearchChange = (v: string) => {
-    setSearchInput(v);
+    setSearch(v);
     reset();
   };
   const handleCategoriaChange = (v: string) => {
@@ -107,7 +104,7 @@ export function CatalogoPage() {
       </div>
 
       <ProdutoFilters
-        search={searchInput}
+        search={search}
         categoria={categoria}
         sortBy={sortBy}
         order={order}

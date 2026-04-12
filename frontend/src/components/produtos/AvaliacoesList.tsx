@@ -150,7 +150,7 @@ export function AvaliacoesList({ stats, onPageChange, onRespostaPublicada }: Rea
                       try {
                         const atualizada = await deleteRespostaAvaliacao(av.id_avaliacao);
                         onRespostaPublicada(atualizada);
-                      } catch (e) {
+                      } catch {
                         alert("Erro ao excluir resposta.");
                       }
                     }}

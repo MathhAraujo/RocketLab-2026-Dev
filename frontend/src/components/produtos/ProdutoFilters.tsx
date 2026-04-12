@@ -81,7 +81,7 @@ export function ProdutoFilters({
             <button
               type="button"
               onClick={() => onOrderChange(order === "desc" ? "asc" : "desc")}
-className="flex items-center justify-center rounded-l-none rounded-r-lg border px-2.5 transition-colors hover:border-indigo-500 hover:text-indigo-400"
+              className="flex items-center justify-center rounded-l-none rounded-r-lg border px-2.5 transition-colors hover:border-indigo-500 hover:text-indigo-400"
               style={{
                 height: "30px",
                 background: "var(--color-bg-elevated)",

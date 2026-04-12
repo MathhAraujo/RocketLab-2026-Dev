@@ -293,11 +293,6 @@ export const STATUS_PEDIDO_LABELS: Record<string, string> = {
   aprovado: "Aprovado",
 };
 
-export const SORT_OPTIONS = [
-  { value: "nome_produto", label: "Nome" },
-  { value: "categoria_produto", label: "Categoria" },
-] as const;
-
 export const DEBOUNCE_DELAY = 400
 export const AUTH_STORAGE_KEYS = { token: 'token', user: 'user' } as const
 export const DEFAULT_PAGE_SIZE = 20
