@@ -18,8 +18,23 @@
   --color-accent-pos:    #34d399;
   --color-accent-warn:   #fbbf24;
   --color-accent-danger: #f43f5e;
+
+  /* Layout spacing tokens */
+  --container-padding: 1rem; /* mobile default */
 }
 
+/* Responsive container padding */
+@media (min-width: 640px) {
+  :root { --container-padding: 1.25rem; }
+}
+@media (min-width: 1024px) {
+  :root { --container-padding: 2rem; }
+}
+
+/* Utility: responsive card image height */
+.card-image-responsive {
+  height: clamp(9rem, 22vw, 14rem); /* ~144px - 224px */
+}
 /* ── Light mode overrides ─────────────────────────── */
 html:not(.dark) {
   --color-bg-base:     #fafafa;

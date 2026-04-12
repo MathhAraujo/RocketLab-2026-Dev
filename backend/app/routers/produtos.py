@@ -328,3 +328,38 @@ def responder_avaliacao(
         autor_resposta=av.autor_resposta,
         data_resposta=av.data_resposta.isoformat() if av.data_resposta else None,
     )
+
+
+@router.delete(
+    "/avaliacoes/{id_avaliacao}/resposta",
+    response_model=ItemAvaliacao,
+    summary="Deletar Resposta da Avaliação",
+    description="Permite que um administrador exclua uma resposta publicada em uma avaliação.",
+    responses={
+        404: {"description": "Avaliação não encontrada."},
+        403: {"description": "Privilégios insuficientes para realizar esta ação."},
+    },
+)
+def deletar_resposta_avaliacao(
+    id_avaliacao: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    av = db.query(AvaliacaoPedido).filter(AvaliacaoPedido.id_avaliacao == id_avaliacao).first()
+    if not av:
+        raise HTTPException(status_code=404, detail="Avaliação não encontrada")
+    av.resposta_admin = None
+    av.autor_resposta = None
+    av.data_resposta = None
+    db.commit()
+    db.refresh(av)
+    return ItemAvaliacao(
+        id_avaliacao=av.id_avaliacao,
+        avaliacao=av.avaliacao,
+        titulo_comentario=av.titulo_comentario,
+        comentario=av.comentario,
+        data_comentario=av.data_comentario.isoformat() if av.data_comentario else None,
+        resposta_admin=av.resposta_admin,
+        autor_resposta=av.autor_resposta,
+        data_resposta=av.data_resposta.isoformat() if av.data_resposta else None,
+    )

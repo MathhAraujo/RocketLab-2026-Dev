@@ -72,3 +72,23 @@ def test_responder_avaliacao_proibido_para_nao_admin(client, db, admin_headers):
     payload = {"resposta": "Tentativa indevida"}
     r2 = client.post(f"/api/produtos/avaliacoes/{id_avaliacao}/resposta", json=payload, headers=user_headers)
     assert r2.status_code == 403
+
+
+def test_deletar_resposta_avaliacao_sucesso(client, admin_headers, db):
+    r = criar_produto(client, admin_headers)
+    id_produto = r.json()["id_produto"]
+
+    id_consumidor = criar_consumidor(db)
+    id_vendedor = criar_vendedor(db)
+    id_pedido = criar_pedido_com_item(db, id_produto, id_consumidor, id_vendedor)
+    id_avaliacao = criar_avaliacao(db, id_pedido, nota=5)
+
+    payload = {"resposta": "Deletar me!"}
+    client.post(f"/api/produtos/avaliacoes/{id_avaliacao}/resposta", json=payload, headers=admin_headers)
+
+    r2 = client.delete(f"/api/produtos/avaliacoes/{id_avaliacao}/resposta", headers=admin_headers)
+    assert r2.status_code == 200
+    body = r2.json()
+    assert body["resposta_admin"] is None
+    assert body["autor_resposta"] is None
+    assert body["data_resposta"] is None

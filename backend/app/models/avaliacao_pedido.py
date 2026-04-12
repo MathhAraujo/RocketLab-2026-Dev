@@ -12,7 +12,7 @@ class AvaliacaoPedido(Base):
 
     id_avaliacao: Mapped[str] = mapped_column(String(32), primary_key=True)
     id_pedido: Mapped[str] = mapped_column(
-        String(32), ForeignKey("pedidos.id_pedido"), nullable=False
+        String(32), ForeignKey("pedidos.id_pedido"), nullable=False, index=True
     )
     avaliacao: Mapped[int] = mapped_column(Integer)
     titulo_comentario: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)

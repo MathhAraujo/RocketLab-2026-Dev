@@ -68,7 +68,7 @@ export function RegisterPage() {
 
       <button
         onClick={toggleTheme}
-        className="absolute top-4 right-4 rounded-lg p-2 transition-colors hover:bg-zinc-800/60 z-10"
+        className="absolute top-4 right-4 rounded-lg p-2 transition-opacity hover:opacity-70 z-10"
         style={{ color: "var(--color-text-secondary)" }}
       >
         {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
@@ -146,9 +146,9 @@ export function RegisterPage() {
                   onClick={() => setIsAdmin(false)}
                   className="flex flex-col items-center gap-1.5 rounded-xl border p-3 text-xs font-medium transition-all"
                   style={{
-                    borderColor: !isAdmin ? "#6366f1" : "var(--color-border)",
+                    borderColor: !isAdmin ? "var(--color-accent)" : "var(--color-border)",
                     background: !isAdmin ? "rgba(99,102,241,0.12)" : "var(--color-bg-elevated)",
-                    color: !isAdmin ? "#818cf8" : "var(--color-text-secondary)",
+                    color: !isAdmin ? "var(--color-accent)" : "var(--color-text-secondary)",
                   }}
                 >
                   <Eye size={18} />
@@ -159,9 +159,9 @@ export function RegisterPage() {
                   onClick={() => setIsAdmin(true)}
                   className="flex flex-col items-center gap-1.5 rounded-xl border p-3 text-xs font-medium transition-all"
                   style={{
-                    borderColor: isAdmin ? "#f59e0b" : "var(--color-border)",
+                    borderColor: isAdmin ? "var(--color-accent-warn)" : "var(--color-border)",
                     background: isAdmin ? "rgba(245,158,11,0.12)" : "var(--color-bg-elevated)",
-                    color: isAdmin ? "#fbbf24" : "var(--color-text-secondary)",
+                    color: isAdmin ? "var(--color-accent-warn)" : "var(--color-text-secondary)",
                   }}
                 >
                   <Shield size={18} />

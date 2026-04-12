@@ -81,3 +81,12 @@ export async function responderAvaliacao(
   );
   return response.data;
 }
+
+export async function deleteRespostaAvaliacao(
+  idAvaliacao: string
+): Promise<AvaliacaoItem> {
+  const response = await api.delete<AvaliacaoItem>(
+    `/produtos/avaliacoes/${idAvaliacao}/resposta`
+  );
+  return response.data;
+}

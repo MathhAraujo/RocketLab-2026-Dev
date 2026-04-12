@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { LayoutDashboard, LayoutGrid, PackagePlus, Sun, Moon, LogOut, X } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
@@ -25,17 +26,28 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
     navigate("/login");
   };
 
-  const sidebarContent = (
-    <div className="flex h-full flex-col">
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  const SidebarContent = ({ showLabels }: { showLabels: boolean }) => (
+    <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-none">
       {/* Logo */}
       <div
-        className="flex h-14 items-center overflow-hidden shrink-0"
+        className="hidden lg:flex h-14 items-center overflow-hidden shrink-0"
         style={{ borderBottom: "1px solid var(--color-border)" }}
       >
         <div className="flex w-14 shrink-0 items-center justify-center">
           <LayoutDashboard size={20} className="text-indigo-500" />
         </div>
-        {isExpanded && (
+        {showLabels && (
           <span
             className="whitespace-nowrap text-base font-bold"
             style={{ fontFamily: "'Outfit', sans-serif", color: "var(--color-text-primary)" }}
@@ -50,10 +62,10 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
         {/* Dashboard — disabled placeholder */}
         <div
           className="flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-not-allowed opacity-40"
-          title={isExpanded ? undefined : "Dashboard (Em breve)"}
+          title={showLabels ? undefined : "Dashboard (Em breve)"}
         >
           <LayoutDashboard size={18} className="shrink-0" style={{ color: "var(--color-text-secondary)" }} />
-          {isExpanded && (
+          {showLabels && (
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-sm font-medium truncate" style={{ color: "var(--color-text-secondary)" }}>
                 Dashboard
@@ -70,7 +82,7 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
             key={to}
             to={to}
             onClick={onClose}
-            title={isExpanded ? undefined : label}
+            title={showLabels ? undefined : label}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
               ${isActive
@@ -84,7 +96,7 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
             })}
           >
             <Icon size={18} className="shrink-0" />
-            {isExpanded && <span className="truncate">{label}</span>}
+            {showLabels && <span className="truncate">{label}</span>}
           </NavLink>
         ))}
       </nav>
@@ -105,7 +117,7 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
             ? <Sun size={18} className="shrink-0" />
             : <Moon size={18} className="shrink-0" />
           }
-          {isExpanded && (
+          {showLabels && (
             <span className="truncate">
               {theme === "dark" ? "Modo claro" : "Modo escuro"}
             </span>
@@ -116,13 +128,13 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
         {user && (
           <button
             onClick={handleLogout}
-            title={isExpanded ? undefined : `Sair (${user.username})`}
+            title={showLabels ? undefined : `Sair (${user.username})`}
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-rose-500/10 hover:text-rose-400"
             style={{ color: "var(--color-text-secondary)" }}
           >
             <LogOut size={18} className="shrink-0" />
-            {isExpanded && (
-              <span className="truncate">{user.username}</span>
+            {showLabels && (
+              <span className="truncate flex-1 text-left">Sair ({user.username})</span>
             )}
           </button>
         )}
@@ -136,7 +148,7 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
       {isOpen && (
         <div
           role="presentation"
-          className="fixed inset-0 z-20 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-20 bg-black/50 lg:hidden touch-none"
           onClick={onClose}
           onKeyDown={(e) => e.key === "Escape" && onClose()}
         />
@@ -144,7 +156,7 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
 
       {/* Mobile drawer */}
       <aside
-        className={`fixed top-0 left-0 z-30 h-full w-[220px] lg:hidden transition-transform duration-200
+        className={`fixed inset-y-0 left-0 z-30 w-[85%] max-w-xs flex flex-col sm:w-[220px] lg:hidden transition-transform duration-200
           ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{
           background: "var(--color-bg-surface)",
@@ -152,22 +164,25 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
         }}
       >
         <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--color-border)" }}>
-          <span
-            className="text-base font-bold"
-            style={{ fontFamily: "'Outfit', sans-serif", color: "var(--color-text-primary)" }}
-          >
-            Mercadão
-          </span>
+          <div className="flex items-center gap-2">
+            <LayoutDashboard size={20} className="text-indigo-500" />
+            <span
+              className="text-base font-bold"
+              style={{ fontFamily: "'Outfit', sans-serif", color: "var(--color-text-primary)" }}
+            >
+              Mercadão
+            </span>
+          </div>
           <button onClick={onClose} style={{ color: "var(--color-text-secondary)" }}>
             <X size={18} />
           </button>
         </div>
-        {sidebarContent}
+        <SidebarContent showLabels={true} />
       </aside>
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden lg:flex fixed top-0 left-0 z-20 h-full flex-col transition-all duration-200
+        className={`hidden lg:flex fixed inset-y-0 left-0 z-20 flex-col transition-all duration-200
           ${isExpanded ? "w-[220px]" : "w-14"}`}
         style={{
           background: "var(--color-bg-surface)",
@@ -176,7 +191,7 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
         onMouseEnter={() => onExpandChange(true)}
         onMouseLeave={() => onExpandChange(false)}
       >
-        {sidebarContent}
+        <SidebarContent showLabels={isExpanded} />
       </aside>
     </>
   );

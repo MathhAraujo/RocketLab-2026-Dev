@@ -1,6 +1,6 @@
-import { MessageSquareReply, Send, X } from "lucide-react";
+import { MessageSquareReply, Send, X, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { responderAvaliacao } from "../../api/produtos";
+import { responderAvaliacao, deleteRespostaAvaliacao } from "../../api/produtos";
 import { useAuth } from "../../hooks/useAuth";
 import type { AvaliacaoItem, AvaliacaoStats } from "../../types/avaliacao";
 import { formatDate } from "../../utils/formatters";
@@ -133,15 +133,35 @@ export function AvaliacoesList({ stats, onPageChange, onRespostaPublicada }: Rea
           {/* Resposta existente */}
           {av.resposta_admin && (
             <div
-              className="mt-3 rounded-lg p-3"
+              className="mt-3 rounded-lg p-3 group relative"
               style={{
                 background: "rgba(99,102,241,0.07)",
                 border: "1px solid rgba(99,102,241,0.2)",
               }}
             >
-              <p className="mb-1 text-xs font-semibold" style={{ color: "#818cf8" }}>
-                {av.autor_resposta} · {formatDate(av.data_resposta)}
-              </p>
+              <div className="flex justify-between items-start">
+                <p className="mb-1 text-xs font-semibold" style={{ color: "#818cf8" }}>
+                  {av.autor_resposta} · {formatDate(av.data_resposta)}
+                </p>
+                {user?.is_admin && (
+                  <button
+                    onClick={async () => {
+                      if (!confirm("Deseja excluir esta resposta?")) return;
+                      try {
+                        const atualizada = await deleteRespostaAvaliacao(av.id_avaliacao);
+                        onRespostaPublicada(atualizada);
+                      } catch (e) {
+                        alert("Erro ao excluir resposta.");
+                      }
+                    }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-400"
+                    style={{ color: "var(--color-text-secondary)" }}
+                    title="Excluir resposta"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
               <p className="text-sm" style={{ color: "var(--color-text-primary)" }}>
                 {av.resposta_admin}
               </p>

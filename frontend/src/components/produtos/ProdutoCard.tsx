@@ -19,7 +19,7 @@ export function ProdutoCard({ produto }: Readonly<ProdutoCardProps>) {
     <Card onClick={() => navigate(`/produtos/${produto.id_produto}`)}>
       {/* Image */}
       <div
-        className="relative h-44 overflow-hidden rounded-t-xl"
+        className="relative overflow-hidden rounded-t-xl card-image-responsive"
         style={{ background: "var(--color-bg-elevated)" }}
       >
         {imagemCategoria ? (
@@ -42,13 +42,13 @@ export function ProdutoCard({ produto }: Readonly<ProdutoCardProps>) {
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-3">
+      <div className="p-3 md:p-4 space-y-3">
         <Badge category={produto.categoria_produto}>
           {formatCategoria(produto.categoria_produto)}
         </Badge>
 
         <h3
-          className="line-clamp-2 text-sm font-semibold leading-snug"
+          className="line-clamp-2 text-sm md:text-base font-semibold leading-snug"
           style={{ color: "var(--color-text-primary)" }}
         >
           {produto.nome_produto}
