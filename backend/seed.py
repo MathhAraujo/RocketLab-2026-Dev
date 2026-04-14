@@ -198,6 +198,49 @@ def _seed_avaliacoes(db) -> None:
     print(f"  avaliacoes_pedidos: {n} registros inseridos.")
 
 
+def _atualizar_agregados_produtos(db) -> None:
+    """Calcula total_vendas, preco_medio, total_avaliacoes e avaliacao_media para cada produto."""
+    from sqlalchemy import func
+
+    # Vendas: total e preço médio por produto
+    vendas_stats = (
+        db.query(
+            ItemPedido.id_produto,
+            func.count(ItemPedido.id_item).label("total_vendas"),
+            func.avg(ItemPedido.preco_BRL).label("preco_medio"),
+        )
+        .group_by(ItemPedido.id_produto)
+        .all()
+    )
+
+    for row in vendas_stats:
+        db.query(Produto).filter(Produto.id_produto == row.id_produto).update({
+            Produto.total_vendas: row.total_vendas,
+            Produto.preco_medio: round(float(row.preco_medio), 2) if row.preco_medio else None,
+        })
+
+    # Avaliações: total e média por produto (via pedidos)
+    aval_stats = (
+        db.query(
+            ItemPedido.id_produto,
+            func.count(AvaliacaoPedido.id_avaliacao).label("total_avaliacoes"),
+            func.avg(AvaliacaoPedido.avaliacao).label("avaliacao_media"),
+        )
+        .join(AvaliacaoPedido, AvaliacaoPedido.id_pedido == ItemPedido.id_pedido)
+        .group_by(ItemPedido.id_produto)
+        .all()
+    )
+
+    for row in aval_stats:
+        db.query(Produto).filter(Produto.id_produto == row.id_produto).update({
+            Produto.total_avaliacoes: row.total_avaliacoes,
+            Produto.avaliacao_media: round(float(row.avaliacao_media), 2) if row.avaliacao_media else None,
+        })
+
+    db.commit()
+    print("  agregados atualizados.")
+
+
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
@@ -225,6 +268,9 @@ def seed_all() -> None:
 
         print("Populando avaliações...")
         _seed_avaliacoes(db)
+
+        print("Atualizando agregados dos produtos...")
+        _atualizar_agregados_produtos(db)
 
         print("Banco de dados populado com sucesso!")
     except Exception as exc:
